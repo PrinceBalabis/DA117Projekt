@@ -2,6 +2,7 @@ package se.mah.ab7271.wolf;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,19 +12,17 @@ import android.speech.RecognizerIntent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Locale;
 
 
-public class HowlingActivity extends Activity {
+public class HowlingActivity extends Activity implements WolframAlpha.WolfCallback {
 
-
+    private ProgressDialog pd;
     final Context context = this;
     private ImageButton btnAsk;
     private TextView tvQuestion;
@@ -41,6 +40,12 @@ public class HowlingActivity extends Activity {
         tvAnswer = (TextView) findViewById(R.id.tvAnswer);
         btnAsk = (ImageButton) findViewById(R.id.btnAsk);
         btnListener_init();
+    }
+
+    public void call(String question, String answer){
+        pd.dismiss();
+        tvAnswer.setText(answer);
+        tvQuestion.setText(question);
     }
 
 
@@ -83,11 +88,11 @@ public class HowlingActivity extends Activity {
                                             public void onClick(DialogInterface dialog, int id) {
                                                 // get user input and set it to result
                                                 // edit text
-                                                tvQuestion.setText(userInput.getText());
-                                                new WolframAlpha(HowlingActivity.this, userInput.getText().toString()).execute();
                                                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                                                 imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-
+                                                pd = ProgressDialog.show(HowlingActivity.this,
+                                                        "", "Asking WolframAlpha...", true);
+                                                new WolframAlpha(HowlingActivity.this, userInput.getText().toString()).execute();
                                             }
                                         })
                                 .setNegativeButton("Cancel",

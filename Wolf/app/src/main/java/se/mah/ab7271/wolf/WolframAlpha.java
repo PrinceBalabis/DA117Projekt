@@ -3,7 +3,6 @@ package se.mah.ab7271.wolf;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.widget.TextView;
-
 import com.wolfram.alpha.WAEngine;
 import com.wolfram.alpha.WAException;
 import com.wolfram.alpha.WAPlainText;
@@ -12,23 +11,24 @@ import com.wolfram.alpha.WAQuery;
 import com.wolfram.alpha.WAQueryResult;
 import com.wolfram.alpha.WASubpod;
 
-/**
- * Created by Prince on 24/10/14.
- */
 public class WolframAlpha extends AsyncTask<WAQueryResult, Void, WAQueryResult> {
-    private Activity context;
-    private static String appid = "9A682A-TW36J5R7AE";
     private WAQueryResult queryResult;
     private String input = "";
+    private WolfCallback callerActivity;
+
+    public interface WolfCallback {
+        void call(String question, String answer);
+    }
 
     public WolframAlpha(Activity context, String input) {
-        this.context = context;
+        callerActivity = (WolfCallback)context;
         this.input = input;
     }
 
     @Override
     protected WAQueryResult doInBackground(WAQueryResult... urls) {
         WAEngine engine = new WAEngine();
+        String appid = "9A682A-TW36J5R7AE";
         engine.setAppID(appid);
         engine.addFormat("plaintext");
 
@@ -58,18 +58,16 @@ public class WolframAlpha extends AsyncTask<WAQueryResult, Void, WAQueryResult> 
             } else {
 
                 // Got a result.
-                System.out.println("Successful query. Pods follow:\n");
+                System.out.println("Successful query");
                 int i = 0;
                 for (WAPod pod : queryResult.getPods()) {
-                    if (!pod.isError() && (i == 0 || i == 1)) {
+                    if (!pod.isError() && i == 1) {
                         //System.out.println(pod.getTitle());
                         for (WASubpod subpod : pod.getSubpods()) {
                             for (Object element : subpod.getContents()) {
                                 if (element instanceof WAPlainText) {
-                                    System.out.println(((WAPlainText) element).getText());
-                                    TextView tvAnswer;
-                                    tvAnswer = (TextView) context.findViewById(R.id.tvAnswer);
-                                    tvAnswer.setText(((WAPlainText) element).getText());
+//                                    System.out.println(((WAPlainText) element).getText());
+                                    callerActivity.call(input, ((WAPlainText) element).getText());
                                 }
                             }
                         }
