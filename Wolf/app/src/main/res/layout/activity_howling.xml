@@ -10,52 +10,61 @@
     android:id="@+id/activity_main"
     android:background="@drawable/bg_gradient">
 
-    <Button
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ask!"
-        android:id="@+id/btnSend"
-        android:layout_centerVertical="true"
-        android:layout_alignEnd="@+id/tvOutput" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/tvOutput"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Question:"
+        android:id="@+id/tvQuestionTitle"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:layout_above="@+id/btnSend"
-        android:background="@color/bg_output" />
-
-    <Spinner
-        android:layout_width="80dp"
-        android:layout_height="20dp"
-        android:id="@+id/spinnerLang"
-        android:layout_alignTop="@+id/btnMicrophone"
-        android:layout_alignEnd="@+id/btnSend"
-        android:layout_alignBottom="@+id/btnMicrophone"
-        android:entries="@array/language_array"
+        android:onClick="displayEditText"
         />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvQuestion"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_below="@+id/tvQuestionTitle"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Answer:"
+        android:id="@+id/tvAnswerTitle"
+        android:layout_below="@+id/tvQuestion"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="88dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvAnswer"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_below="@+id/tvAnswerTitle"
+        android:layout_centerHorizontal="true" />
 
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/btnMicrophone"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="79dp"
-        android:background="@drawable/microphone" />
+        android:background="@drawable/microphone"
+        android:adjustViewBounds="true"
+        android:layout_toEndOf="@+id/tvAnswer"
+        android:layout_alignParentBottom="true" />
 
-    <EditText
+    <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/editInput"
-        android:layout_toStartOf="@+id/btnSend"
-        android:background="@color/bg_output"
-        android:layout_centerVertical="true"
-        android:layout_alignParentStart="true" />
+        android:text="Ask!"
+        android:id="@+id/btnAsk"
+        android:adjustViewBounds="true"
+        android:background="@drawable/keyboard"
+        android:layout_toStartOf="@+id/btnMicrophone"
+        android:layout_alignTop="@+id/btnMicrophone" />
 
 </RelativeLayout>
