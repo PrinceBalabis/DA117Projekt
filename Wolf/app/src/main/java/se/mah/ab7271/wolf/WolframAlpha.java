@@ -2,7 +2,6 @@ package se.mah.ab7271.wolf;
 
 import android.app.Activity;
 import android.os.AsyncTask;
-import android.widget.TextView;
 import com.wolfram.alpha.WAEngine;
 import com.wolfram.alpha.WAException;
 import com.wolfram.alpha.WAPlainText;
@@ -14,14 +13,10 @@ import com.wolfram.alpha.WASubpod;
 public class WolframAlpha extends AsyncTask<WAQueryResult, Void, WAQueryResult> {
     private WAQueryResult queryResult;
     private String input = "";
-    private WolfCallback callerActivity;
-
-    public interface WolfCallback {
-        void call(String question, String answer);
-    }
+    private Callback callerActivity;
 
     public WolframAlpha(Activity context, String input) {
-        callerActivity = (WolfCallback)context;
+        callerActivity = (Callback)context;
         this.input = input;
     }
 
@@ -67,7 +62,7 @@ public class WolframAlpha extends AsyncTask<WAQueryResult, Void, WAQueryResult> 
                             for (Object element : subpod.getContents()) {
                                 if (element instanceof WAPlainText) {
 //                                    System.out.println(((WAPlainText) element).getText());
-                                    callerActivity.call(input, ((WAPlainText) element).getText());
+                                    callerActivity.updateDisplays(input, ((WAPlainText) element).getText());
                                 }
                             }
                         }

@@ -16,19 +16,25 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.att.android.speech.ATTSpeechService;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
 
-public class HowlingActivity extends Activity implements WolframAlpha.WolfCallback {
+public class HowlingActivity extends Activity implements Callback {
 
-    private ProgressDialog pd;
-    final Context context = this;
+    private ProgressDialog pdQuery;
+    private final Context context = this;
     private ImageButton btnAsk;
     private TextView tvQuestion;
     private TextView tvAnswer;
     private ImageButton btnMicrophone;
-    private final int REQ_CODE_SPEECH_INPUT = 100;
+    // The ATTSpeechKit uses a singleton object to interface with the
+    // speech server.
+    private ATTSpeechToText attSpeechToText;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,15 +45,25 @@ public class HowlingActivity extends Activity implements WolframAlpha.WolfCallba
         tvQuestion = (TextView) findViewById(R.id.tvQuestion);
         tvAnswer = (TextView) findViewById(R.id.tvAnswer);
         btnAsk = (ImageButton) findViewById(R.id.btnAsk);
-        btnListener_init();
+        ATTSpeechService speechService = ATTSpeechService.getSpeechService(this);
+        attSpeechToText = new ATTSpeechToText(HowlingActivity.this, speechService);
     }
 
-    public void call(String question, String answer){
-        pd.dismiss();
+    public void updateDisplays(String question, String answer){
+        pdQuery.dismiss(); // Hide progressdialog
         tvAnswer.setText(answer);
         tvQuestion.setText(question);
     }
 
+    public void makeQuery(String question){
+        pdQuery = ProgressDialog.show(HowlingActivity.this,
+                "", "Asking WolframAlpha...", true);
+        new WolframAlpha(HowlingActivity.this, question).execute();
+    }
+
+    public void enableSpeechToText(){
+        btnListener_init();
+    }
 
     private void btnListener_init() {
         btnMicrophone.setOnClickListener(
@@ -55,7 +71,9 @@ public class HowlingActivity extends Activity implements WolframAlpha.WolfCallba
 
                     @Override
                     public void onClick(View v) {
-                        promptSpeechInput();
+//                        new SpeechToText(HowlingActivity.this).promptSpeechInput();
+                        // MIC ACTION
+                        attSpeechToText.startSpeechService();
                     }
                 });
 
@@ -69,16 +87,16 @@ public class HowlingActivity extends Activity implements WolframAlpha.WolfCallba
                         LayoutInflater li = LayoutInflater.from(context);
                         View promptsView = li.inflate(R.layout.popup, null);
 
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                                context);
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+
+                        // Show keyboard
                         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                         imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
 
                         // set prompts.xml to alertdialog builder
                         alertDialogBuilder.setView(promptsView);
 
-                        final EditText userInput = (EditText) promptsView
-                                .findViewById(R.id.etQuestionWrite);
+                        final EditText userInput = (EditText) promptsView.findViewById(R.id.etQuestionWrite);
 
                         // set dialog message
                         alertDialogBuilder
@@ -86,24 +104,21 @@ public class HowlingActivity extends Activity implements WolframAlpha.WolfCallba
                                 .setPositiveButton("OK",
                                         new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int id) {
-                                                // get user input and set it to result
-                                                // edit text
+                                                makeQuery(userInput.getText().toString());
+                                                // Hide keyboard
                                                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                                                 imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-                                                pd = ProgressDialog.show(HowlingActivity.this,
-                                                        "", "Asking WolframAlpha...", true);
-                                                new WolframAlpha(HowlingActivity.this, userInput.getText().toString()).execute();
                                             }
                                         })
                                 .setNegativeButton("Cancel",
                                         new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int id) {
                                                 dialog.cancel();
+                                                // Hide keyboard
                                                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                                                 imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
                                             }
                                         });
-
                         // create alert dialog
                         AlertDialog alertDialog = alertDialogBuilder.create();
 
@@ -112,36 +127,5 @@ public class HowlingActivity extends Activity implements WolframAlpha.WolfCallba
 
                     }
                 });
-    }
-
-
-    private void promptSpeechInput() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.speech_prompt));
-        try {
-            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
-        } catch (ActivityNotFoundException a) {
-            Toast.makeText(getApplicationContext(), getString(R.string.speech_not_supported), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
-     * Receiving speech input
-     * */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case REQ_CODE_SPEECH_INPUT: {
-                if (resultCode == RESULT_OK && null != data) {
-                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    tvQuestion.setText(result.get(0));
-                }
-                break;
-            }
-        }
     }
 }
