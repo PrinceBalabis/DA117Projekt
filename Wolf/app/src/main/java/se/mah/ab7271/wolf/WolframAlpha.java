@@ -10,6 +10,9 @@ import com.wolfram.alpha.WAQuery;
 import com.wolfram.alpha.WAQueryResult;
 import com.wolfram.alpha.WASubpod;
 
+/**
+ *  This class contains the code to run the WolframAlpha query service
+ **/
 public class WolframAlpha extends AsyncTask<WAQueryResult, Void, WAQueryResult> {
     private WAQueryResult queryResult;
     private String input = "";
