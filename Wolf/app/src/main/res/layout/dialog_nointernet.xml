@@ -10,7 +10,7 @@
         android:id="@+id/tvAsk"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="You have no internet :("
+        android:text="You have no internet connection :("
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:focusable="true"
         android:focusableInTouchMode="true" />

@@ -15,7 +15,8 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import com.att.android.speech.ATTSpeechService;
-import java.net.InetAddress;
+import static android.view.LayoutInflater.*;
+import static se.mah.ab7271.wolf.R.layout.dialog_nointernet;
 
 /**
  *  This is the main class which sets up the GUI and initiates the APIs
@@ -28,8 +29,6 @@ public class HowlingActivity extends Activity implements Callback {
     private TextView tvQuestion;
     private TextView tvAnswer;
     private ImageButton btnMicrophone;
-    // The ATTSpeechKit uses a singleton object to interface with the
-    // speech server.
     private ATTSpeechToText attSpeechToText;
     AlertDialog alertDialogNoInternet;
 
@@ -38,65 +37,85 @@ public class HowlingActivity extends Activity implements Callback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_howling);
 
-
-        btnMicrophone = (ImageButton) findViewById(R.id.btnMicrophone);
+        // Setup GUI Widgets
         tvQuestion = (TextView) findViewById(R.id.tvQuestion);
         tvAnswer = (TextView) findViewById(R.id.tvAnswer);
         btnAsk = (ImageButton) findViewById(R.id.btnAsk);
+        btnMicrophone = (ImageButton) findViewById(R.id.btnMicrophone);
 
-        speechToText_init();
-        //Check internet connection
-        if(!isNetworkOnline()){
-            showNoInternetDialog();
-        } else{
-            attSpeechToText.validate();
-        }
+        speechToText_init(); // initiate the speech2Text service
+        networkCheck(); // Check internet connection and setup internet-required services
         btnListener_init();
     }
 
+    /**
+     * onResume method runs every time app closes after have been paused
+     **/
     @Override
     protected void onResume() {
-        if(!isNetworkOnline()){
-            showNoInternetDialog();
-        } else{
-            attSpeechToText.validate();
-        }
+        networkCheck();
     }
 
+    /**
+     * Method which is a callback executed by WolframAlpha API
+     * to pass on the question and answer
+     *
+     * @param question
+     * @param answer
+     **/
         public void updateDisplays(String question, String answer){
         pdQuery.dismiss(); // Hide progressdialog
         tvAnswer.setText(answer);
         tvQuestion.setText(question);
     }
 
+    /**
+     * Method is executed to make a WolframAlpha query. This method is a callback
+     * from Speech2Text class or local from manual keyboard entry
+     *
+     * @param question
+     **/
     public void makeQuery(String question){
+        // Show a progressdialog while waiting for WolframAlpha query
         pdQuery = ProgressDialog.show(HowlingActivity.this,
                 "", "Asking WolframAlpha...", true);
+        // Start the WolframAlpha query
         new WolframAlpha(HowlingActivity.this, question).execute();
     }
 
-    public void enableSpeechToText(){
-    }
-
-    private boolean isNetworkOnline(){
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+    /**
+     * This method checks if the phone is connected to the
+     * internet and sets up the internet-required services
+     **/
+    private boolean networkCheck(){
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnected();
+        if(netInfo != null && netInfo.isConnected()){
+            attSpeechToText.validate(); // (re)validate Speech2Text service
+            return true;
+        } else{
+            showNoInternetDialog(); // Show an alert for missing internet-connection
+            return false;
+        }
     }
 
+    /**
+     * Sets up and displays a dialog which alert user of missing internet-connection
+     **/
     private void showNoInternetDialog(){
         System.out.println("No internet!");
-        // get prompts.xml view
-        LayoutInflater li = LayoutInflater.from(context);
-        View promptsView = li.inflate(R.layout.dialog_nointernet, null);
+        // get dialog_nointernet.xml view
+        LayoutInflater li = from(context);
+        View promptsView = li.inflate(dialog_nointernet, null);
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 
-        // set prompts.xml to alertdialog builder
+        // set dialog_nointernet.xml to alertdialog builder
         alertDialogBuilder.setView(promptsView);
 
         alertDialogBuilder
                 .setCancelable(false)
-                .setPositiveButton("OK",
+                .setPositiveButton("Try again",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 ((HowlingActivity) context).onResume();
@@ -109,73 +128,86 @@ public class HowlingActivity extends Activity implements Callback {
         alertDialogNoInternet.show();
     }
 
+    /**
+     * Toggles(Shows/hides) the keyboard depending on previous state
+     **/
+    private void toggleKeyboard(){
+        InputMethodManager imm =
+                (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+    }
+
+    /**
+     * Initiates Speech2Text service
+     **/
     private void speechToText_init(){
         ATTSpeechService speechService = ATTSpeechService.getSpeechService(this);
         attSpeechToText = new ATTSpeechToText(HowlingActivity.this, speechService);
     }
 
+    /**
+     * Sets up button listener for keyboard and microphone buttons
+     **/
     private void btnListener_init() {
+        // Setup microphone button
         btnMicrophone.setOnClickListener(
                 new View.OnClickListener() {
 
                     @Override
                     public void onClick(View v) {
-//                        new SpeechToText(HowlingActivity.this).promptSpeechInput();
-                        // MIC ACTION
                         //Check internet connection
-                        if(!isNetworkOnline()){
-                            showNoInternetDialog();
-                        } else{
+                        if(networkCheck()){
+                            // Start SpeechToText conversion
                             attSpeechToText.startSpeechService();
                         }
                     }
                 });
 
-
+        // Setup keyboard button
         btnAsk.setOnClickListener(
                 new View.OnClickListener() {
 
                     @Override
                     public void onClick(View v) {
                         //Check internet connection
-                        if(!isNetworkOnline()){
-                            showNoInternetDialog();
-                        } else {
-                            // get prompts.xml view
-                            LayoutInflater li = LayoutInflater.from(context);
+                        if(networkCheck()){
+                            // get dialog_keyboard.xml view
+                            LayoutInflater li = from(context);
                             View promptsView = li.inflate(R.layout.dialog_keyboard, null);
 
-                            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+                            AlertDialog.Builder alertDialogBuilder =
+                                    new AlertDialog.Builder(context);
 
                             // Show keyboard
-                            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+                            toggleKeyboard();
 
-                            // set prompts.xml to alertdialog builder
+                            // set dialog_keyboard.xml to alertdialog builder
                             alertDialogBuilder.setView(promptsView);
 
-                            final EditText userInput = (EditText) promptsView.findViewById(R.id.etQuestionWrite);
+                            final EditText userInput =
+                                    (EditText) promptsView.findViewById(R.id.etQuestionWrite);
 
                             // set dialog message
                             alertDialogBuilder
                                     .setCancelable(false)
                                     .setPositiveButton("OK",
                                             new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-
+                                                public void onClick(DialogInterface dialog,
+                                                                    int id) {
+                                                    // Make a WolframAlpha Query
                                                     makeQuery(userInput.getText().toString());
                                                     // Hide keyboard
-                                                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                                                    imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+                                                    toggleKeyboard();
                                                 }
                                             })
                                     .setNegativeButton("Cancel",
                                             new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
+                                                public void onClick(DialogInterface dialog,
+                                                                    int id) {
+                                                    // hide dialog
                                                     dialog.cancel();
                                                     // Hide keyboard
-                                                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                                                    imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+                                                    toggleKeyboard();
                                                 }
                                             });
                             // create alert dialog

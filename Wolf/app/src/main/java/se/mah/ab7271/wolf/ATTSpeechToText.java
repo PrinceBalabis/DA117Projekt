@@ -153,7 +153,6 @@ public class ATTSpeechToText {
         {
             if (token != null) {
                 oauthToken = token;
-                callerActivity.enableSpeechToText();
             }
             else {
                 Log.v("SimpleSpeech", "OAuth error: "+error);
@@ -165,17 +164,4 @@ public class ATTSpeechToText {
         }
     }
 
-//    private void alert(String header, String message) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-//        builder.setMessage(message)
-//                .setTitle(header)
-//                .setCancelable(true)
-//                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-//                    @Override public void onClick(DialogInterface dialog, int which) {
-//                        dialog.dismiss();
-//                    }
-//                });
-//        AlertDialog alert = builder.create();
-//        alert.show();
-//    }
 }
