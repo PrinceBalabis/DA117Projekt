@@ -15,6 +15,7 @@ import java.util.List;
 
 /**
  *  This class contains the code to run the Speech2Text service
+ *  @author Prince, Stefan, Tequamnesh
  **/
 public class ATTSpeechToText {
 

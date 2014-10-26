@@ -21,6 +21,7 @@ import static se.mah.ab7271.wolf.R.layout.dialog_nointernet;
 
 /**
  *  This is the main class which sets up the GUI and initiates the APIs
+ *  @author Prince, Stefan, Tequamnesh
  **/
 public class HowlingActivity extends Activity implements Callback {
 
