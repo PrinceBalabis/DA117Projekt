@@ -10,6 +10,9 @@ import com.wolfram.alpha.WAQuery;
 import com.wolfram.alpha.WAQueryResult;
 import com.wolfram.alpha.WASubpod;
 
+/**
+ *  This class contains the code to run the WolframAlpha query service
+ **/
 public class WolframAlpha extends AsyncTask<WAQueryResult, Void, WAQueryResult> {
     private WAQueryResult queryResult;
     private String input = "";
@@ -55,20 +58,27 @@ public class WolframAlpha extends AsyncTask<WAQueryResult, Void, WAQueryResult> 
                 // Got a result.
                 System.out.println("Successful query");
                 int i = 0;
+                String question = "error",
+                        answer = "error";
                 for (WAPod pod : queryResult.getPods()) {
-                    if (!pod.isError() && i == 1) {
+                    if (!pod.isError()) {
                         //System.out.println(pod.getTitle());
                         for (WASubpod subpod : pod.getSubpods()) {
                             for (Object element : subpod.getContents()) {
                                 if (element instanceof WAPlainText) {
 //                                    System.out.println(((WAPlainText) element).getText());
-                                    callerActivity.updateDisplays(input, ((WAPlainText) element).getText());
+                                    if(i == 0)  {
+                                        question = ((WAPlainText) element).getText();
+                                    } else if(i == 1) {
+                                        answer = ((WAPlainText) element).getText();
+                                    }
                                 }
                             }
                         }
                     }
                     i++;
                 }
+                callerActivity.updateDisplays(question, answer);
             }
         }
     }

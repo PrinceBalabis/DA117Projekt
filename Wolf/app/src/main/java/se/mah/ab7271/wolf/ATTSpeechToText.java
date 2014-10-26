@@ -1,9 +1,6 @@
 package se.mah.ab7271.wolf;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.util.Log;
 import com.att.android.speech.ATTSpeechError;
 import com.att.android.speech.ATTSpeechError.ErrorType;
@@ -11,14 +8,14 @@ import com.att.android.speech.ATTSpeechErrorListener;
 import com.att.android.speech.ATTSpeechResult;
 import com.att.android.speech.ATTSpeechResultListener;
 import com.att.android.speech.ATTSpeechService;
-
-import org.apache.http.entity.HttpEntityWrapper;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ *  This class contains the code to run the Speech2Text service
+ **/
 public class ATTSpeechToText {
 
     private ATTSpeechService speechService;
@@ -29,10 +26,12 @@ public class ATTSpeechToText {
         this.callerActivity = (Callback)context;
         this.speechService = speechService;
 
+    }
+
+    public void validate(){
         // Fetch the OAuth credentials.
         validateOAuth();
     }
-
 
     /**
      * Called by the Speak button in the sample activity.
@@ -154,7 +153,6 @@ public class ATTSpeechToText {
         {
             if (token != null) {
                 oauthToken = token;
-                callerActivity.enableSpeechToText();
             }
             else {
                 Log.v("SimpleSpeech", "OAuth error: "+error);
@@ -166,17 +164,4 @@ public class ATTSpeechToText {
         }
     }
 
-//    private void alert(String header, String message) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-//        builder.setMessage(message)
-//                .setTitle(header)
-//                .setCancelable(true)
-//                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-//                    @Override public void onClick(DialogInterface dialog, int which) {
-//                        dialog.dismiss();
-//                    }
-//                });
-//        AlertDialog alert = builder.create();
-//        alert.show();
-//    }
 }
