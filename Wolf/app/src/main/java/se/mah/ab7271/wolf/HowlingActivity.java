@@ -55,6 +55,7 @@ public class HowlingActivity extends Activity implements Callback {
      **/
     @Override
     protected void onResume() {
+        super.onResume();
         networkCheck();
     }
 
