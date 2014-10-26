@@ -52,6 +52,7 @@ public class WolframAlpha extends AsyncTask<WAQueryResult, Void, WAQueryResult> 
         } else {
             if (!queryResult.isSuccess()) {
                 System.out.println("Query was not understood; no results available.");
+                callerActivity.queryWasNotUnderstood(input);
 
             } else {
 

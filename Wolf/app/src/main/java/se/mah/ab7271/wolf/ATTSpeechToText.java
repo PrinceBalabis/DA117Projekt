@@ -74,7 +74,6 @@ public class ATTSpeechToText {
      **/
     private class ResultListener implements ATTSpeechResultListener {
         public void onResult(ATTSpeechResult result) {
-            Log.v("SimpleSpeech", "YESYESYESY.");
 
             // The hypothetical recognition matches are returned as a list of strings.
             List<String> textList = result.getTextStrings();

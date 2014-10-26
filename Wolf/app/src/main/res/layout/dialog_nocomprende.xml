@@ -7,10 +7,10 @@
     android:padding="10dp" >
 
     <TextView
-        android:id="@+id/tvNoInternet"
+        android:id="@+id/tvNoComprende"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="You have no internet connection :("
+        android:text="Sorry, WolframAlpha did not understand: "
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:focusable="true"
         android:focusableInTouchMode="true" />
