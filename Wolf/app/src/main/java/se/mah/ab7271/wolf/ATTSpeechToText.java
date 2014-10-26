@@ -15,6 +15,7 @@ import java.util.List;
 
 /**
  *  This class contains the code to run the Speech2Text service
+ *  @author Prince, Stefan, Tequamnesh
  **/
 public class ATTSpeechToText {
 
@@ -74,7 +75,6 @@ public class ATTSpeechToText {
      **/
     private class ResultListener implements ATTSpeechResultListener {
         public void onResult(ATTSpeechResult result) {
-            Log.v("SimpleSpeech", "YESYESYESY.");
 
             // The hypothetical recognition matches are returned as a list of strings.
             List<String> textList = result.getTextStrings();

@@ -12,6 +12,7 @@ import com.wolfram.alpha.WASubpod;
 
 /**
  *  This class contains the code to run the WolframAlpha query service
+ *  @author Prince, Stefan, Tequamnesh
  **/
 public class WolframAlpha extends AsyncTask<WAQueryResult, Void, WAQueryResult> {
     private WAQueryResult queryResult;
@@ -52,6 +53,7 @@ public class WolframAlpha extends AsyncTask<WAQueryResult, Void, WAQueryResult> 
         } else {
             if (!queryResult.isSuccess()) {
                 System.out.println("Query was not understood; no results available.");
+                callerActivity.queryWasNotUnderstood(input);
 
             } else {
 

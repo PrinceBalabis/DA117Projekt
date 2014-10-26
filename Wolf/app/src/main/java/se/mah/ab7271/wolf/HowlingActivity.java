@@ -16,10 +16,12 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import com.att.android.speech.ATTSpeechService;
 import static android.view.LayoutInflater.*;
+import static se.mah.ab7271.wolf.R.layout.dialog_nocomprende;
 import static se.mah.ab7271.wolf.R.layout.dialog_nointernet;
 
 /**
  *  This is the main class which sets up the GUI and initiates the APIs
+ *  @author Prince, Stefan, Tequamnesh
  **/
 public class HowlingActivity extends Activity implements Callback {
 
@@ -81,6 +83,40 @@ public class HowlingActivity extends Activity implements Callback {
                 "", "Asking WolframAlpha...", true);
         // Start the WolframAlpha query
         new WolframAlpha(HowlingActivity.this, question).execute();
+    }
+
+    /**
+     * Method is executed whenever WolframAlpha didn't understand the questin.
+     * This method is a callback from WolframAlpha API
+     **/
+     public void queryWasNotUnderstood(String question){
+        pdQuery.dismiss(); // Hide progressdialog
+        LayoutInflater li = from(context);
+        View promptsView = li.inflate(dialog_nocomprende, null);
+        TextView tvNoComprende = (TextView) promptsView.findViewById(R.id.tvNoComprende);
+        tvNoComprende.setText("WolframAlpha did not understand: '"+question+"'");
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+
+        // set dialog_nointernet.xml to alertdialog builder
+        alertDialogBuilder.setView(promptsView);
+
+        alertDialogBuilder
+                .setCancelable(false)
+                .setPositiveButton("OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                ((HowlingActivity) context).onResume();
+                            }
+                        });
+
+
+        // create alert dialog
+        alertDialogNoInternet = alertDialogBuilder.create();
+
+        // show it
+        alertDialogNoInternet.show();
+
     }
 
     /**
