@@ -83,7 +83,12 @@ public class HowlingActivity extends Activity implements Callback {
         // Start the WolframAlpha query
         new WolframAlpha(HowlingActivity.this, question).execute();
     }
-    public void queryWasNotUnderstood(String question){
+
+    /**
+     * Method is executed whenever WolframAlpha didn't understand the questin.
+     * This method is a callback from WolframAlpha API
+     **/
+     public void queryWasNotUnderstood(String question){
         pdQuery.dismiss(); // Hide progressdialog
         LayoutInflater li = from(context);
         View promptsView = li.inflate(dialog_nocomprende, null);
