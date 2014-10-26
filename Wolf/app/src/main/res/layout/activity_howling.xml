@@ -48,23 +48,30 @@
         android:layout_below="@+id/tvAnswerTitle"
         android:layout_centerHorizontal="true" />
 
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/btnMicrophone"
-        android:background="@drawable/microphone"
-        android:adjustViewBounds="true"
-        android:layout_toEndOf="@+id/tvAnswer"
-        android:layout_alignParentBottom="true" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/tvAnswer">
 
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ask!"
-        android:id="@+id/btnAsk"
-        android:adjustViewBounds="true"
-        android:background="@drawable/keyboard"
-        android:layout_toStartOf="@+id/btnMicrophone"
-        android:layout_alignTop="@+id/btnMicrophone" />
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ask!"
+            android:id="@+id/btnAsk"
+            android:adjustViewBounds="true"
+            android:background="@drawable/keyboard"
+            android:layout_gravity="bottom" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnMicrophone"
+            android:background="@drawable/microphone"
+            android:adjustViewBounds="true"
+            android:layout_toEndOf="@+id/tvAnswer"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom" />
+    </LinearLayout>
 
 </RelativeLayout>

@@ -3,145 +3,220 @@ package se.mah.ab7271.wolf;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.speech.RecognizerIntent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
-import java.util.ArrayList;
-import java.util.Locale;
+import com.att.android.speech.ATTSpeechService;
+import static android.view.LayoutInflater.*;
+import static se.mah.ab7271.wolf.R.layout.dialog_nointernet;
 
+/**
+ *  This is the main class which sets up the GUI and initiates the APIs
+ **/
+public class HowlingActivity extends Activity implements Callback {
 
-public class HowlingActivity extends Activity implements WolframAlpha.WolfCallback {
-
-    private ProgressDialog pd;
-    final Context context = this;
+    private ProgressDialog pdQuery;
+    private final Context context = this;
     private ImageButton btnAsk;
     private TextView tvQuestion;
     private TextView tvAnswer;
     private ImageButton btnMicrophone;
-    private final int REQ_CODE_SPEECH_INPUT = 100;
+    private ATTSpeechToText attSpeechToText;
+    AlertDialog alertDialogNoInternet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_howling);
 
-        btnMicrophone = (ImageButton) findViewById(R.id.btnMicrophone);
+        // Setup GUI Widgets
         tvQuestion = (TextView) findViewById(R.id.tvQuestion);
         tvAnswer = (TextView) findViewById(R.id.tvAnswer);
         btnAsk = (ImageButton) findViewById(R.id.btnAsk);
+        btnMicrophone = (ImageButton) findViewById(R.id.btnMicrophone);
+
+        speechToText_init(); // initiate the speech2Text service
+        networkCheck(); // Check internet connection and setup internet-required services
         btnListener_init();
     }
 
-    public void call(String question, String answer){
-        pd.dismiss();
+    /**
+     * onResume method runs every time app closes after have been paused
+     **/
+    @Override
+    protected void onResume() {
+        networkCheck();
+    }
+
+    /**
+     * Method which is a callback executed by WolframAlpha API
+     * to pass on the question and answer
+     *
+     * @param question
+     * @param answer
+     **/
+        public void updateDisplays(String question, String answer){
+        pdQuery.dismiss(); // Hide progressdialog
         tvAnswer.setText(answer);
         tvQuestion.setText(question);
     }
 
+    /**
+     * Method is executed to make a WolframAlpha query. This method is a callback
+     * from Speech2Text class or local from manual keyboard entry
+     *
+     * @param question
+     **/
+    public void makeQuery(String question){
+        // Show a progressdialog while waiting for WolframAlpha query
+        pdQuery = ProgressDialog.show(HowlingActivity.this,
+                "", "Asking WolframAlpha...", true);
+        // Start the WolframAlpha query
+        new WolframAlpha(HowlingActivity.this, question).execute();
+    }
 
+    /**
+     * This method checks if the phone is connected to the
+     * internet and sets up the internet-required services
+     **/
+    private boolean networkCheck(){
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if(netInfo != null && netInfo.isConnected()){
+            attSpeechToText.validate(); // (re)validate Speech2Text service
+            return true;
+        } else{
+            showNoInternetDialog(); // Show an alert for missing internet-connection
+            return false;
+        }
+    }
+
+    /**
+     * Sets up and displays a dialog which alert user of missing internet-connection
+     **/
+    private void showNoInternetDialog(){
+        System.out.println("No internet!");
+        // get dialog_nointernet.xml view
+        LayoutInflater li = from(context);
+        View promptsView = li.inflate(dialog_nointernet, null);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+
+        // set dialog_nointernet.xml to alertdialog builder
+        alertDialogBuilder.setView(promptsView);
+
+        alertDialogBuilder
+                .setCancelable(false)
+                .setPositiveButton("Try again",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                ((HowlingActivity) context).onResume();
+                            }
+                        });
+        // create alert dialog
+        alertDialogNoInternet = alertDialogBuilder.create();
+
+        // show it
+        alertDialogNoInternet.show();
+    }
+
+    /**
+     * Toggles(Shows/hides) the keyboard depending on previous state
+     **/
+    private void toggleKeyboard(){
+        InputMethodManager imm =
+                (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+    }
+
+    /**
+     * Initiates Speech2Text service
+     **/
+    private void speechToText_init(){
+        ATTSpeechService speechService = ATTSpeechService.getSpeechService(this);
+        attSpeechToText = new ATTSpeechToText(HowlingActivity.this, speechService);
+    }
+
+    /**
+     * Sets up button listener for keyboard and microphone buttons
+     **/
     private void btnListener_init() {
+        // Setup microphone button
         btnMicrophone.setOnClickListener(
                 new View.OnClickListener() {
 
                     @Override
                     public void onClick(View v) {
-                        promptSpeechInput();
+                        //Check internet connection
+                        if(networkCheck()){
+                            // Start SpeechToText conversion
+                            attSpeechToText.startSpeechService();
+                        }
                     }
                 });
 
-
+        // Setup keyboard button
         btnAsk.setOnClickListener(
                 new View.OnClickListener() {
 
                     @Override
                     public void onClick(View v) {
-                        // get prompts.xml view
-                        LayoutInflater li = LayoutInflater.from(context);
-                        View promptsView = li.inflate(R.layout.popup, null);
+                        //Check internet connection
+                        if(networkCheck()){
+                            // get dialog_keyboard.xml view
+                            LayoutInflater li = from(context);
+                            View promptsView = li.inflate(R.layout.dialog_keyboard, null);
 
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                                context);
-                        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+                            AlertDialog.Builder alertDialogBuilder =
+                                    new AlertDialog.Builder(context);
 
-                        // set prompts.xml to alertdialog builder
-                        alertDialogBuilder.setView(promptsView);
+                            // Show keyboard
+                            toggleKeyboard();
 
-                        final EditText userInput = (EditText) promptsView
-                                .findViewById(R.id.etQuestionWrite);
+                            // set dialog_keyboard.xml to alertdialog builder
+                            alertDialogBuilder.setView(promptsView);
 
-                        // set dialog message
-                        alertDialogBuilder
-                                .setCancelable(false)
-                                .setPositiveButton("OK",
-                                        new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                // get user input and set it to result
-                                                // edit text
-                                                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                                                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-                                                pd = ProgressDialog.show(HowlingActivity.this,
-                                                        "", "Asking WolframAlpha...", true);
-                                                new WolframAlpha(HowlingActivity.this, userInput.getText().toString()).execute();
-                                            }
-                                        })
-                                .setNegativeButton("Cancel",
-                                        new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                dialog.cancel();
-                                                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                                                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-                                            }
-                                        });
+                            final EditText userInput =
+                                    (EditText) promptsView.findViewById(R.id.etQuestionWrite);
 
-                        // create alert dialog
-                        AlertDialog alertDialog = alertDialogBuilder.create();
+                            // set dialog message
+                            alertDialogBuilder
+                                    .setCancelable(false)
+                                    .setPositiveButton("OK",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog,
+                                                                    int id) {
+                                                    // Make a WolframAlpha Query
+                                                    makeQuery(userInput.getText().toString());
+                                                    // Hide keyboard
+                                                    toggleKeyboard();
+                                                }
+                                            })
+                                    .setNegativeButton("Cancel",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog,
+                                                                    int id) {
+                                                    // hide dialog
+                                                    dialog.cancel();
+                                                    // Hide keyboard
+                                                    toggleKeyboard();
+                                                }
+                                            });
+                            // create alert dialog
+                            AlertDialog alertDialog = alertDialogBuilder.create();
 
-                        // show it
-                        alertDialog.show();
-
+                            // show it
+                            alertDialog.show();
+                        }
                     }
                 });
-    }
-
-
-    private void promptSpeechInput() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.speech_prompt));
-        try {
-            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
-        } catch (ActivityNotFoundException a) {
-            Toast.makeText(getApplicationContext(), getString(R.string.speech_not_supported), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
-     * Receiving speech input
-     * */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case REQ_CODE_SPEECH_INPUT: {
-                if (resultCode == RESULT_OK && null != data) {
-                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    tvQuestion.setText(result.get(0));
-                }
-                break;
-            }
-        }
     }
 }
